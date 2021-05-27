@@ -331,6 +331,13 @@
     <ManifestResourceCompile>
       <ResourceOutputFileName />
     </ManifestResourceCompile>
+    <PreBuildEvent>
+      <Command>echo a &gt; %temp%/unhook.txt</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>cd ../
+injector.exe ./build/Debug/cakewalk.dll</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
