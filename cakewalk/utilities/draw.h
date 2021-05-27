@@ -173,14 +173,8 @@ namespace F
 	 * [N][purpose]	[max size]	[flags]
 	 */
 
-	// 0	main		13		autohinting
-	inline ImFont* Whitney;
 	// 1	extra		14		bold
 	inline ImFont* Verdana;
-	// 2	visuals		40		lighthinting
-	inline ImFont* SmallestPixel;
-	// 3	icons		40		lighthinting
-	inline ImFont* Icons;
 }
 
 // extended imgui functionality

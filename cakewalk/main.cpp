@@ -24,10 +24,25 @@
 // used: hooks setup/destroy
 #include "core/hooks.h"
 
+#ifdef _DEBUG
+#define UNHOOKCHECK std::filesystem::exists(std::string(getenv("TEMP")).append("\\unhook.txt").c_str())
+#else
+#define UNHOOKCHECK false
+#endif // _DEBUG
+
+void deleteUnhookFile() {
+#ifdef _DEBUG
+	if (std::filesystem::exists(std::string(getenv("TEMP")).append("\\unhook.txt").c_str()))
+		std::filesystem::remove(std::string(getenv("TEMP")).append("\\unhook.txt").c_str());
+#endif // _DEBUG
+}
+
 DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 {
 	try
 	{
+		deleteUnhookFile();
+
 		/*
 		 * @note: serverbrowser.dll is last loaded module (u can seen it when debug)
 		 * here is check for all modules loaded
@@ -147,8 +162,10 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 {
 	// unload cheat if pressed specified key
-	while (!IPT::IsKeyReleased(C::Get<int>(Vars.iPanicKey)))
+	while (!IPT::IsKeyReleased(C::Get<int>(Vars.iPanicKey)) && !UNHOOKCHECK)
 		std::this_thread::sleep_for(500ms);
+
+	deleteUnhookFile();
 
 	#if 0
 	// destroy entity listener

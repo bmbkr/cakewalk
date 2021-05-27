@@ -5,11 +5,6 @@
 // used: current window
 #include "inputsystem.h"
 
-/* font resources */
-#include "../../resources/whitney.h"
-#include "../../resources/smallest_pixel.h"
-#include "../../resources/qo0icons.h"
-
 #pragma region imgui_extended
 /*
  * what is changed in imgui framework files (currently used imgui version is v1.75):
@@ -443,27 +438,9 @@ void D::Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags)
 	// create fonts
 	ImGuiIO& io = ImGui::GetIO();
 
-	ImFontConfig imWhitneyConfig;
-	imWhitneyConfig.RasterizerFlags = ImGuiFreeType::ForceAutoHint;
-	F::Whitney = io.Fonts->AddFontFromMemoryCompressedTTF(whitney_compressed_data, whitney_compressed_size, 13.f, &imWhitneyConfig, io.Fonts->GetGlyphRangesCyrillic());
-
 	ImFontConfig imVerdanaConfig;
 	imVerdanaConfig.RasterizerFlags = ImGuiFreeType::Bold;
 	F::Verdana = io.Fonts->AddFontFromFileTTF(XorStr("C:\\Windows\\Fonts\\Verdana.ttf"), 14.f, &imVerdanaConfig, io.Fonts->GetGlyphRangesCyrillic());
-
-	ImFontConfig imSmallestPixelConfig;
-	imSmallestPixelConfig.RasterizerFlags = ImGuiFreeType::LightHinting;
-	F::SmallestPixel = io.Fonts->AddFontFromMemoryCompressedTTF(smallest_pixel_compressed_data, smallest_pixel_compressed_size, 40.f, &imSmallestPixelConfig, io.Fonts->GetGlyphRangesCyrillic());
-
-	ImFontConfig imIconsConfig;
-	imIconsConfig.RasterizerFlags = ImGuiFreeType::LightHinting;
-	constexpr ImWchar wIconRanges[] =
-	{
-		0xE000, 0xF8FF, // Private Use Area
-		0
-	};
-
-	F::Icons = io.Fonts->AddFontFromMemoryCompressedTTF(qo0icons_compressed_data, qo0icons_compressed_size, 40.f, &imIconsConfig, wIconRanges);
 
 	bInitialized = ImGuiFreeType::BuildFontAtlas(io.Fonts, uFontFlags);
 }

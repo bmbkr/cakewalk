@@ -12,10 +12,6 @@
 #include "../utilities/draw.h"
 // used: engine, inputsystem, convar interfaces
 #include "../core/interfaces.h"
-// used: render visuals
-#include "../features/visuals.h"
-// used: skinchanger tab items map
-#include "../features/skinchanger.h"
 // used: inputtext() wrappers for c++ standard library (stl) type: std::string
 #include "../../dependencies/imgui/cpp/imgui_stdlib.h"
 
@@ -669,18 +665,5 @@ void T::Miscellaneous()
 		}
 	}
 	ImGui::Columns(1);
-}
-
-void T::SkinChanger()
-{
-	ImGui::BeginChild(XorStr("skins"), ImVec2(), true);
-	{
-		for (const auto& item : mapItemList) //first - itemdefindex, second - skin item struct
-		{
-
-		}
-
-		ImGui::EndChild();
-	}
 }
 #pragma endregion

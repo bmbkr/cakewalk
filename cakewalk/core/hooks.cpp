@@ -21,12 +21,9 @@
 #include "../features/lagcompensation.h"
 #include "../features/prediction.h"
 #include "../features/ragebot.h"
-#include "../features/antiaim.h"
 #include "../features/legitbot.h"
 #include "../features/triggerbot.h"
-#include "../features/visuals.h"
 #include "../features/misc.h"
-#include "../features/skinchanger.h"
 
 static constexpr std::array<const char*, 3U> arrSmokeMaterials =
 {
@@ -283,11 +280,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		if (C::Get<bool>(Vars.bTrigger))
 			CTriggerBot::Get().Run(pCmd, pLocal);
 
-		if (C::Get<bool>(Vars.bAntiAim))
-			CAntiAim::Get().UpdateServerAnimations(pCmd, pLocal);
-
-		if (C::Get<bool>(Vars.bAntiAim))
-			CAntiAim::Get().Run(pCmd, pLocal, bSendPacket);
+		// PUT WALKBOT HERE !!!!
 	}
 	CPrediction::Get().End(pCmd, pLocal);
 
@@ -343,18 +336,6 @@ void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel
 	// @note: we don't render here, only store's data and render it later
 	if (uPanelHash == FNV1A::HashConst("FocusOverlayPanel"))
 	{
-		SEH_START
-
-		// clear data from previous call
-		D::ClearDrawData();
-
-		// store data to render
-		CVisuals::Get().Store();
-
-		// swap given data to safe container
-		D::SwapDrawData();
-
-		SEH_END
 	}
 }
 
@@ -512,8 +493,8 @@ void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t
 
 	bool bClearOverride = false;
 
-	if (G::pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams))
-		bClearOverride = CVisuals::Get().Chams(G::pLocal, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
+	//if (G::pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams))
+		//bClearOverride = CVisuals::Get().Chams(G::pLocal, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 
 	oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 	
@@ -695,8 +676,8 @@ int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CView
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDoPostScreenEffects(thisptr, edx, pSetup);
 
-	if (G::pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
-		CVisuals::Get().Glow(G::pLocal);
+	//if (G::pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
+		//CVisuals::Get().Glow(G::pLocal);
 
 	return oDoPostScreenEffects(thisptr, edx, pSetup);
 }
