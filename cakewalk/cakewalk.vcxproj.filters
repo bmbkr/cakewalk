@@ -45,10 +45,6 @@
     <Filter Include="include\sdk\datatypes">
       <UniqueIdentifier>{702c9012-431f-4cdc-b73a-2134d757afa9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="resources">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="dependencies">
       <UniqueIdentifier>{0fbd9190-d7c3-406e-a957-d4b77371774e}</UniqueIdentifier>
     </Filter>
@@ -72,9 +68,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="features\antiaim.h">
-      <Filter>include\features</Filter>
-    </ClInclude>
     <ClInclude Include="features\lagcompensation.h">
       <Filter>include\features</Filter>
     </ClInclude>
@@ -87,13 +80,7 @@
     <ClInclude Include="features\resolver.h">
       <Filter>include\features</Filter>
     </ClInclude>
-    <ClInclude Include="features\skinchanger.h">
-      <Filter>include\features</Filter>
-    </ClInclude>
     <ClInclude Include="features\triggerbot.h">
-      <Filter>include\features</Filter>
-    </ClInclude>
-    <ClInclude Include="features\visuals.h">
       <Filter>include\features</Filter>
     </ClInclude>
     <ClInclude Include="core\variables.h">
@@ -291,15 +278,6 @@
     <ClInclude Include="sdk\convar.h">
       <Filter>include\sdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\resources\qo0icons.h">
-      <Filter>resources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\resources\smallest_pixel.h">
-      <Filter>resources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\resources\whitney.h">
-      <Filter>resources</Filter>
-    </ClInclude>
     <ClInclude Include="utilities\logging.h">
       <Filter>include\utilities</Filter>
     </ClInclude>
@@ -419,9 +397,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="features\antiaim.cpp">
-      <Filter>source\features</Filter>
-    </ClCompile>
     <ClCompile Include="features\lagcompensation.cpp">
       <Filter>source\features</Filter>
     </ClCompile>
@@ -434,13 +409,7 @@
     <ClCompile Include="features\resolver.cpp">
       <Filter>source\features</Filter>
     </ClCompile>
-    <ClCompile Include="features\skinchanger.cpp">
-      <Filter>source\features</Filter>
-    </ClCompile>
     <ClCompile Include="features\triggerbot.cpp">
-      <Filter>source\features</Filter>
-    </ClCompile>
-    <ClCompile Include="features\visuals.cpp">
       <Filter>source\features</Filter>
     </ClCompile>
     <ClCompile Include="core\hooks.cpp">
