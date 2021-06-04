@@ -16,13 +16,13 @@
 #include "../utilities.h"
 // used: render windows
 #include "menu.h"
+#include "../utilities/math.h"
 
 /* features */
 #include "../features/lagcompensation.h"
 #include "../features/prediction.h"
-#include "../features/ragebot.h"
-#include "../features/legitbot.h"
-#include "../features/triggerbot.h"
+#include "../features/walkbot.h"
+#include "../features/aimbot.h"
 #include "../features/misc.h"
 
 static constexpr std::array<const char*, 3U> arrSmokeMaterials =
@@ -255,6 +255,9 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	// @note: need do bunnyhop and other movements before prediction
 	CMiscellaneous::Get().Run(pCmd, pLocal, bSendPacket);
 
+	if (C::Get<bool>(Vars.bWalkbot))
+		CWalkBot::Get().Run(pCmd, pLocal);
+
 	/*
 	 * CL_RunPrediction
 	 * correct prediction when framerate is lower than tickrate
@@ -265,38 +268,20 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 
 	CPrediction::Get().Start(pCmd, pLocal);
 	{
-		if (C::Get<bool>(Vars.bMiscAutoPistol))
-			CMiscellaneous::Get().AutoPistol(pCmd, pLocal);
-
-		if (C::Get<bool>(Vars.bMiscFakeLag) || C::Get<bool>(Vars.bAntiAim))
-			CMiscellaneous::Get().FakeLag(pLocal, bSendPacket);
-
-		if (C::Get<bool>(Vars.bRage))
-			CRageBot::Get().Run(pCmd, pLocal, bSendPacket);
-
-		if (C::Get<bool>(Vars.bLegit))
-			CLegitBot::Get().Run(pCmd, pLocal, bSendPacket);
-
-		if (C::Get<bool>(Vars.bTrigger))
-			CTriggerBot::Get().Run(pCmd, pLocal);
-
-		// PUT WALKBOT HERE !!!!
+		if (C::Get<bool>(Vars.bAimbot))
+			CAimBot::Get().Run(pCmd, pLocal, bSendPacket);
 	}
 	CPrediction::Get().End(pCmd, pLocal);
 
 	if (pLocal->IsAlive())
 		CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
 
-	// clamp & normalize view angles
-	if (C::Get<bool>(Vars.bMiscAntiUntrusted))
-	{
-		pCmd->angViewPoint.Normalize();
-		pCmd->angViewPoint.Clamp();
-	}
+	pCmd->angViewPoint.Normalize();
+	pCmd->angViewPoint.Clamp();
 
-	if (C::Get<bool>(Vars.bMiscPingSpike))
+	/*if (C::Get<bool>(Vars.bMiscPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
-	else
+	else*/
 		CLagCompensation::Get().ClearIncomingSequences();
 
 	// @note: doesnt need rehook cuz detours here
@@ -327,9 +312,9 @@ void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel
 	static auto oPaintTraverse = DTR::PaintTraverse.GetOriginal<decltype(&hkPaintTraverse)>();
 	const FNV1A_t uPanelHash = FNV1A::Hash(I::Panel->GetName(uPanel));
 
-	// remove zoom panel
-	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && uPanelHash == FNV1A::HashConst("HudZoom"))
-		return;
+	//// remove zoom panel
+	//if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && uPanelHash == FNV1A::HashConst("HudZoom"))
+	//	return;
 
 	oPaintTraverse(thisptr, edx, uPanel, bForceRepaint, bForce);
 
@@ -417,45 +402,45 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		 * e.g. remove visual punch, thirdperson, other render/update stuff
 		 */
 
-		 // set max flash alpha
-		*pLocal->GetFlashMaxAlpha() = C::Get<bool>(Vars.bWorld) ? C::Get<int>(Vars.iWorldMaxFlash) * 2.55f : 255.f;
+		// // set max flash alpha
+		//*pLocal->GetFlashMaxAlpha() = C::Get<bool>(Vars.bWorld) ? C::Get<int>(Vars.iWorldMaxFlash) * 2.55f : 255.f;
 
-		// no draw smoke
-		for (auto szSmokeMaterial : arrSmokeMaterials)
-		{
-			IMaterial* pMaterial = I::MaterialSystem->FindMaterial(szSmokeMaterial, TEXTURE_GROUP_OTHER);
+		//// no draw smoke
+		//for (auto szSmokeMaterial : arrSmokeMaterials)
+		//{
+		//	IMaterial* pMaterial = I::MaterialSystem->FindMaterial(szSmokeMaterial, TEXTURE_GROUP_OTHER);
 
-			if (pMaterial != nullptr && !pMaterial->IsErrorMaterial())
-				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE)) ? true : false);
-		}
+		//	if (pMaterial != nullptr && !pMaterial->IsErrorMaterial())
+		//		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE)) ? true : false);
+		//}
 
-		// remove visual punch
-		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld))
-		{
-			// save old values
-			angOldViewPunch = pLocal->GetViewPunch();
-			angOldAimPunch = pLocal->GetPunch();
+		//// remove visual punch
+		//if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld))
+		//{
+		//	// save old values
+		//	angOldViewPunch = pLocal->GetViewPunch();
+		//	angOldAimPunch = pLocal->GetPunch();
 
-			if (C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
-			{
-				// change current values
-				pLocal->GetViewPunch() = QAngle(0, 0, 0);
-				pLocal->GetPunch() = QAngle(0, 0, 0);
-			}
-		}
+		//	if (C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
+		//	{
+		//		// change current values
+		//		pLocal->GetViewPunch() = QAngle(0, 0, 0);
+		//		pLocal->GetPunch() = QAngle(0, 0, 0);
+		//	}
+		//}
 
-		// thirdperson
-		if (C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
-		{
-			static bool bThirdPerson = false;
+		//// thirdperson
+		//if (C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
+		//{
+		//	static bool bThirdPerson = false;
 
-			if (!I::Engine->IsConsoleVisible() && IPT::IsKeyReleased(C::Get<int>(Vars.iWorldThirdPersonKey)))
-				bThirdPerson = !bThirdPerson;
+		//	if (!I::Engine->IsConsoleVisible() && IPT::IsKeyReleased(C::Get<int>(Vars.iWorldThirdPersonKey)))
+		//		bThirdPerson = !bThirdPerson;
 
-			// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook
-			I::Input->bCameraInThirdPerson = bThirdPerson && pLocal->IsAlive() && !I::Engine->IsTakingScreenshot();
-			I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
-		}
+		//	// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook
+		//	I::Input->bCameraInThirdPerson = bThirdPerson && pLocal->IsAlive() && !I::Engine->IsTakingScreenshot();
+		//	I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
+		//}
 
 		break;
 	}
@@ -466,12 +451,12 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		 * here we can restore our modified things
 		 */
 
-		// restore original visual punch values
-		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
-		{
-			pLocal->GetViewPunch() = angOldViewPunch;
-			pLocal->GetPunch() = angOldAimPunch;
-		}
+		//// restore original visual punch values
+		//if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
+		//{
+		//	pLocal->GetViewPunch() = angOldViewPunch;
+		//	pLocal->GetPunch() = angOldAimPunch;
+		//}
 
 		break;
 	}
@@ -506,10 +491,10 @@ void FASTCALL H::hkRenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreVi
 {
 	static auto oRenderSmokeOverlay = DTR::RenderSmokeOverlay.GetOriginal<decltype(&hkRenderSmokeOverlay)>();
 
-	if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
-		// set flSmokeIntensity to 0
-		*reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(thisptr) + 0x588) = 0.0f;
-	else
+	//if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
+	//	// set flSmokeIntensity to 0
+	//	*reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(thisptr) + 0x588) = 0.0f;
+	//else
 		oRenderSmokeOverlay(thisptr, edx, bPreViewModel);
 }
 
@@ -525,31 +510,31 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 	// in RecomputeRenderableLeaves https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L674
 	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
 
-	// check for esp state and call from CClientLeafSystem::InsertIntoTree
-	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && C::Get<bool>(Vars.bEspChamsDisableOcclusion) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uInsertIntoTree)
-	{
-		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
-		if (const auto pInfo = *reinterpret_cast<RenderableInfo_t**>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) + 0x14); pInfo != nullptr)
-		{
-			if (const auto pRenderable = pInfo->pRenderable; pRenderable != nullptr)
-			{
-				// check if disabling occlusion for players
-				if (const auto pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity(); pEntity != nullptr && pEntity->IsPlayer())
-				{
-					// fix render order, force translucent group (https://www.unknowncheats.me/forum/2429206-post15.html)
-					// AddRenderablesToRenderLists: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L2473
-					// @ida addrenderablestorenderlists: 55 8B EC 83 EC 24 53 56 8B 75 08 57 8B 46
-					pInfo->uFlags &= ~RENDER_FLAGS_FORCE_OPAQUE_PASS;
-					pInfo->uFlags2 |= RENDER_FLAGS_BOUNDS_ALWAYS_RECOMPUTE;
+	//// check for esp state and call from CClientLeafSystem::InsertIntoTree
+	//if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && C::Get<bool>(Vars.bEspChamsDisableOcclusion) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uInsertIntoTree)
+	//{
+	//	// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
+	//	if (const auto pInfo = *reinterpret_cast<RenderableInfo_t**>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) + 0x14); pInfo != nullptr)
+	//	{
+	//		if (const auto pRenderable = pInfo->pRenderable; pRenderable != nullptr)
+	//		{
+	//			// check if disabling occlusion for players
+	//			if (const auto pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity(); pEntity != nullptr && pEntity->IsPlayer())
+	//			{
+	//				// fix render order, force translucent group (https://www.unknowncheats.me/forum/2429206-post15.html)
+	//				// AddRenderablesToRenderLists: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L2473
+	//				// @ida addrenderablestorenderlists: 55 8B EC 83 EC 24 53 56 8B 75 08 57 8B 46
+	//				pInfo->uFlags &= ~RENDER_FLAGS_FORCE_OPAQUE_PASS;
+	//				pInfo->uFlags2 |= RENDER_FLAGS_BOUNDS_ALWAYS_RECOMPUTE;
 
-					// extend world space bounds to maximum https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L707
-					constexpr Vector vecMapMin(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
-					constexpr Vector vecMapMax(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
-					return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, nListMax);
-				}
-			}
-		}
-	}
+	//				// extend world space bounds to maximum https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L707
+	//				constexpr Vector vecMapMin(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
+	//				constexpr Vector vecMapMax(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
+	//				return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, nListMax);
+	//			}
+	//		}
+	//	}
+	//}
 
 	return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, nListMax);
 }
@@ -564,9 +549,9 @@ bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
 	// .text : 103A2120 84 C0		test    al, al; Logical Compare
 	static std::uintptr_t uLoadoutAllowedReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("75 04 B0 01 5F")) - 0x2);
 
-	// @credits: gavreel
-	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
-		return false;
+	//// @credits: gavreel
+	//if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
+	//	return false;
 
 	return oIsConnected(thisptr, edx);
 }
@@ -597,23 +582,23 @@ int FASTCALL H::hkSendDatagram(INetChannel* thisptr, int edx, bf_write* pDatagra
 {
 	static auto oSendDatagram = DTR::SendDatagram.GetOriginal<decltype(&hkSendDatagram)>();
 
-	INetChannelInfo* pNetChannelInfo = I::Engine->GetNetChannelInfo();
-	static CConVar* sv_maxunlag = I::ConVar->FindVar(XorStr("sv_maxunlag"));
+	//INetChannelInfo* pNetChannelInfo = I::Engine->GetNetChannelInfo();
+	//static CConVar* sv_maxunlag = I::ConVar->FindVar(XorStr("sv_maxunlag"));
 
-	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr || pNetChannelInfo == nullptr || sv_maxunlag == nullptr)
-		return oSendDatagram(thisptr, edx, pDatagram);
+	//if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr || pNetChannelInfo == nullptr || sv_maxunlag == nullptr)
+	//	return oSendDatagram(thisptr, edx, pDatagram);
 
-	const int iOldInReliableState = thisptr->iInReliableState;
-	const int iOldInSequenceNr = thisptr->iInSequenceNr;
+	//const int iOldInReliableState = thisptr->iInReliableState;
+	//const int iOldInSequenceNr = thisptr->iInSequenceNr;
 
-	// calculate max available fake latency with our real ping to keep it w/o real lags or delays
-	const float flMaxLatency = std::max(0.f, std::clamp(C::Get<float>(Vars.flMiscLatencyFactor), 0.f, sv_maxunlag->GetFloat()) - pNetChannelInfo->GetLatency(FLOW_OUTGOING));
-	CLagCompensation::Get().AddLatencyToNetChannel(thisptr, flMaxLatency);
+	//// calculate max available fake latency with our real ping to keep it w/o real lags or delays
+	//const float flMaxLatency = std::max(0.f, std::clamp(C::Get<float>(Vars.flMiscLatencyFactor), 0.f, sv_maxunlag->GetFloat()) - pNetChannelInfo->GetLatency(FLOW_OUTGOING));
+	//CLagCompensation::Get().AddLatencyToNetChannel(thisptr, flMaxLatency);
 
 	const int iReturn = oSendDatagram(thisptr, edx, pDatagram);
 
-	thisptr->iInReliableState = iOldInReliableState;
-	thisptr->iInSequenceNr = iOldInSequenceNr;
+	/*thisptr->iInReliableState = iOldInReliableState;
+	thisptr->iInSequenceNr = iOldInSequenceNr;*/
 
 	return iReturn;
 }
@@ -622,26 +607,26 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 {
 	static auto oOverrideView = DTR::OverrideView.GetOriginal<decltype(&hkOverrideView)>();
 	
-	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
-		return oOverrideView(thisptr, edx, pSetup);
+	//if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
+	//	return oOverrideView(thisptr, edx, pSetup);
 
-	// get camera origin
-	G::vecCamera = pSetup->vecOrigin;
+	//// get camera origin
+	//G::vecCamera = pSetup->vecOrigin;
 
-	if (G::pLocal == nullptr || !G::pLocal->IsAlive())
-		return oOverrideView(thisptr, edx, pSetup);
+	//if (G::pLocal == nullptr || !G::pLocal->IsAlive())
+	//	return oOverrideView(thisptr, edx, pSetup);
 
-	CBaseCombatWeapon* pWeapon = G::pLocal->GetWeapon();
+	//CBaseCombatWeapon* pWeapon = G::pLocal->GetWeapon();
 
-	if (pWeapon == nullptr)
-		return oOverrideView(thisptr, edx, pSetup);
+	//if (pWeapon == nullptr)
+	//	return oOverrideView(thisptr, edx, pSetup);
 
-	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
-		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenCameraFOV)) != FP_ZERO &&
-		// check is we not scoped
-		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !G::pLocal->IsScoped() : true))
-		// set camera fov
-		pSetup->flFOV += C::Get<float>(Vars.flScreenCameraFOV);
+	//if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
+	//	pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenCameraFOV)) != FP_ZERO &&
+	//	// check is we not scoped
+	//	(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !G::pLocal->IsScoped() : true))
+	//	// set camera fov
+	//	pSetup->flFOV += C::Get<float>(Vars.flScreenCameraFOV);
 
 	oOverrideView(thisptr, edx, pSetup);
 }
@@ -663,8 +648,8 @@ float FASTCALL H::hkGetViewModelFOV(IClientModeShared* thisptr, int edx)
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oGetViewModelFOV(thisptr, edx);
 
-	if (G::pLocal != nullptr && G::pLocal->IsAlive() && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenViewModelFOV)) != FP_ZERO)
-		return oGetViewModelFOV(thisptr, edx) + C::Get<float>(Vars.flScreenViewModelFOV);
+	/*if (G::pLocal != nullptr && G::pLocal->IsAlive() && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenViewModelFOV)) != FP_ZERO)
+		return oGetViewModelFOV(thisptr, edx) + C::Get<float>(Vars.flScreenViewModelFOV);*/
 
 	return oGetViewModelFOV(thisptr, edx);
 }
@@ -731,13 +716,13 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 	L::PopConsoleColor();
 	#endif
 
-	// check for k_EMsgGCCStrike15_v2_GCToClientSteamdatagramTicket message when we can accept the game
-	if (C::Get<bool>(Vars.bMiscAutoAccept) && uMessageType == 9177)
-	{
-		U::SetLocalPlayerReady();
-		Beep(500, 800);
-		U::FlashWindow(IPT::hWindow);
-	}
+	//// check for k_EMsgGCCStrike15_v2_GCToClientSteamdatagramTicket message when we can accept the game
+	//if (C::Get<bool>(Vars.bMiscAutoAccept) && uMessageType == 9177)
+	//{
+	//	U::SetLocalPlayerReady();
+	//	Beep(500, 800);
+	//	U::FlashWindow(IPT::hWindow);
+	//}
 
 	return iStatus;
 }
@@ -747,11 +732,13 @@ bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)
 	static auto oSvCheatsGetBool = DTR::SvCheatsGetBool.GetOriginal<decltype(&hkSvCheatsGetBool)>();
 	static std::uintptr_t uCAM_ThinkReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("85 C0 75 30 38 86"))); // @xref: "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
 
-	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
-		return true;
+	/*if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
+		return true;*/
 
 	return oSvCheatsGetBool(thisptr, edx);
 }
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 long CALLBACK H::hkWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -809,11 +796,11 @@ void P::SmokeEffectTickBegin(const CRecvProxyData* pData, void* pStruct, void* p
 {
 	static auto oSmokeEffectTickBegin = RVP::SmokeEffectTickBegin->GetOriginal();
 
-	if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
+	/*if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
 	{
 		if (auto pEntity = static_cast<CBaseEntity*>(pStruct); pEntity != nullptr)
 			pEntity->GetOrigin() = Vector(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
-	}
+	}*/
 
 	oSmokeEffectTickBegin(pData, pStruct, pOut);
 }

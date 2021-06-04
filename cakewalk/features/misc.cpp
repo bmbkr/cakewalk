@@ -8,32 +8,72 @@
 #include "../core/variables.h"
 // used: convar interface
 #include "../core/interfaces.h"
+#include "../features/aimbot.h"
 // used: angle-vector calculations
 #include "../utilities/math.h"
 
 void CMiscellaneous::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 {
-	if (!pLocal->IsAlive())
-		return;
+	if (this->bTryAutoBuy && pLocal->IsAlive()) {
+		this->bTryAutoBuy = false;
+		this->AutoBuy();
+	}
 
-	// @credits: a8pure c:
-	if (C::Get<bool>(Vars.bMiscNoCrouchCooldown))
-		pCmd->iButtons |= IN_BULLRUSH;
-
-	if (C::Get<bool>(Vars.bMiscBunnyHop))
-		BunnyHop(pCmd, pLocal);
-
-	if (C::Get<bool>(Vars.bMiscAutoStrafe))
-		AutoStrafe(pCmd, pLocal);
-
-	if (C::Get<bool>(Vars.bMiscRevealRanks) && pCmd->iButtons & IN_SCORE)
-		I::Client->DispatchUserMessage(CS_UM_ServerRankRevealAll, 0U, 0, nullptr);
+	this->AutoHealthShot();
+	this->AutoReload(pCmd, pLocal);
 }
 
 void CMiscellaneous::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 {
 	if (!I::Engine->IsInGame())
 		return;
+
+	if (uNameHash == FNV1A::HashConst(XorStr("player_death"))) {
+		if (I::Engine->GetPlayerForUserID(pEvent->GetInt(XorStr("userid")) != G::pLocal->GetIndex()))
+			return;
+
+		this->bTryAutoBuy = true;
+	}
+}
+
+void CMiscellaneous::AutoBuy()
+{
+	if (C::Get<bool>(Vars.bMiscAutoBuy)) {
+		I::Engine->ExecuteClientCmd(C::Get<std::string>(Vars.szMiscAutoBuyString).c_str());
+	}
+}
+
+void CMiscellaneous::AutoHealthShot() {
+	//if(G::pLocal->)
+}
+
+void CMiscellaneous::AutoReload(CUserCmd* pCmd, CBaseEntity* pLocal) {
+	if (!C::Get<bool>(Vars.bMiscAutoReload))
+		return;
+
+	if (CAimBot::Get().GetTimeSinceLastShot() < C::Get<int>(Vars.iMiscAutoReloadTimeSinceShot))
+		return;
+
+	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
+
+	if (pWeapon == nullptr)
+		return;
+
+	short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
+	CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
+
+	if (pWeaponData == nullptr || !pWeaponData->IsGun())
+		return;
+
+	if (pWeapon->IsReloading())
+		return;
+
+	float flRatio = (float)pWeapon->GetAmmo() / pWeaponData->iMaxClip1;
+
+	if (flRatio > C::Get<float>(Vars.flMiscAutoReloadAmmoThreshold))
+		return;
+
+	pCmd->iButtons |= IN_RELOAD;
 }
 
 void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, const QAngle& angOldViewPoint) const
@@ -95,112 +135,3 @@ void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, const QAngle& angOldView
 	pCmd->flUpMove = std::clamp(z, -flMaxUpSpeed, flMaxUpSpeed);
 }
 
-void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
-{
-	if (!pLocal->IsAlive())
-		return;
-
-	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
-
-	if (pWeapon == nullptr)
-		return;
-
-	const short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
-	const CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
-
-	// check for pistol and attack
-	if (pWeaponData == nullptr || pWeaponData->bFullAuto || pWeaponData->nWeaponType != WEAPONTYPE_PISTOL || !(pCmd->iButtons & IN_ATTACK))
-		return;
-
-	if (pLocal->CanShoot(static_cast<CWeaponCSBase*>(pWeapon)))
-		pCmd->iButtons |= IN_ATTACK;
-	else
-		pCmd->iButtons &= ~IN_ATTACK;
-}
-
-void CMiscellaneous::FakeLag(CBaseEntity* pLocal, bool& bSendPacket)
-{
-	if (!pLocal->IsAlive())
-		return;
-
-	INetChannel* pNetChannel = I::ClientState->pNetChannel;
-
-	if (pNetChannel == nullptr)
-		return;
-
-	static CConVar* sv_maxusrcmdprocessticks = I::ConVar->FindVar(XorStr("sv_maxusrcmdprocessticks"));
-
-	if (sv_maxusrcmdprocessticks == nullptr)
-		return;
-
-	/*
-	 * @note: get max available ticks to choke
-	 * 2 ticks reserved for server info else player can be stacked
-	 * while antiaiming and fakelag is disabled choke only 1 tick
-	 */
-	const int iMaxCmdProcessTicks = C::Get<bool>(Vars.bMiscFakeLag) ? sv_maxusrcmdprocessticks->GetInt() - 2 :
-		C::Get<bool>(Vars.bAntiAim) ? 1 : 0;
-
-	// choke
-	bSendPacket = I::ClientState->nChokedCommands >= iMaxCmdProcessTicks;
-}
-
-void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal) const
-{
-	static CConVar* sv_autobunnyhopping = I::ConVar->FindVar(XorStr("sv_autobunnyhopping"));
-
-	if (sv_autobunnyhopping->GetBool())
-		return;
-
-	if (pLocal->GetMoveType() == MOVETYPE_LADDER || pLocal->GetMoveType() == MOVETYPE_NOCLIP || pLocal->GetMoveType() == MOVETYPE_OBSERVER)
-		return;
-
-	std::random_device randomDevice;
-	std::mt19937 generate(randomDevice());
-	const std::uniform_int_distribution<> chance(0, 100);
-
-	if (chance(generate) > C::Get<int>(Vars.iMiscBunnyHopChance))
-		return;
-
-	static bool bLastJumped = false, bShouldFake = false;
-
-	if (!bLastJumped && bShouldFake)
-	{
-		bShouldFake = false;
-		pCmd->iButtons |= IN_JUMP;
-	}
-	else if (pCmd->iButtons & IN_JUMP)
-	{
-		if (pLocal->GetFlags() & FL_ONGROUND || pLocal->GetFlags() & FL_PARTIALGROUND)
-		{
-			bLastJumped = true;
-			bShouldFake = true;
-		}
-		else
-		{
-			pCmd->iButtons &= ~IN_JUMP;
-			bLastJumped = false;
-		}
-	}
-	else
-	{
-		bLastJumped = false;
-		bShouldFake = false;
-	}
-}
-
-void CMiscellaneous::AutoStrafe(CUserCmd* pCmd, CBaseEntity* pLocal)
-{
-	if (pLocal->GetMoveType() == MOVETYPE_LADDER || pLocal->GetMoveType() == MOVETYPE_NOCLIP)
-		return;
-
-	if (pLocal->GetFlags() & FL_ONGROUND)
-		return;
-
-	static CConVar* cl_sidespeed = I::ConVar->FindVar(XorStr("cl_sidespeed"));
-
-	if (cl_sidespeed == nullptr)
-		return;
-
-	pCmd->flSideMove = pCmd->sMouseDeltaX < 0 ? -cl_sidespeed->GetFloat() : cl_sidespeed->GetFloat();
-}

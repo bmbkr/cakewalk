@@ -18,9 +18,10 @@ bool C::Setup(std::string_view szDefaultFileName)
 	}
 
 	// create default config
-	if (!Save(szDefaultFileName))
-		return false;
-
+	if(!Load(szDefaultFileName))
+		if (!Save(szDefaultFileName))
+			return false;
+	
 	// load default config
 	if (!Load(szDefaultFileName))
 		return false;

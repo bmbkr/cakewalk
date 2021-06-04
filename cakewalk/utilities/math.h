@@ -54,6 +54,8 @@ namespace M
 	QAngle	PixelsAngle(const float flSensitivity, const float flPitch, const float flYaw, const Vector2D& vecPixels);
 	/* calculate angles by source and destination vectors */
 	QAngle	CalcAngle(const Vector& vecStart, const Vector& vecEnd);
+	/* calculate FOV by source and destination angles */
+	float   GetFOV(const QAngle& viewAngle, const QAngle& aimAngle);
 	/* transform vector by matrix and return it */
 	Vector	VectorTransform(const Vector& vecTransform, const matrix3x4_t& matrix);
 	/* calculate next tick position */

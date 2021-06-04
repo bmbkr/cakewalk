@@ -1,10 +1,7 @@
 #include "eventlistener.h"
 
-// used: gameevent interface
 #include "../core/interfaces.h"
-
-/* features event */
-#include "../features/resolver.h"
+#include "../features/misc.h"
 
 void CEventListener::Setup(const std::deque<const char*>& arrEvents)
 {
@@ -34,6 +31,6 @@ void CEventListener::FireGameEvent(IGameEvent* pEvent)
 	const FNV1A_t uNameHash = FNV1A::Hash(pEvent->GetName());
 
 	#pragma region eventlistener_handlers
-	//CVisuals::Get().Event(pEvent, uNameHash);
+	CMiscellaneous::Get().Event(pEvent, uNameHash);
 	#pragma endregion
 }

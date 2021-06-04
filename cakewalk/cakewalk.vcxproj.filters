@@ -66,21 +66,18 @@
     <Filter Include="dependencies\minhook\hde32">
       <UniqueIdentifier>{82bdec15-33f0-4f4f-bba3-8d0df172e74b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\sdk\nav">
+      <UniqueIdentifier>{ea7e874a-e4c2-40b0-8e3b-ce916bd13c95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\sdk\nav">
+      <UniqueIdentifier>{81c04991-e1eb-4794-92d1-2c3955422f85}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="features\lagcompensation.h">
       <Filter>include\features</Filter>
     </ClInclude>
-    <ClInclude Include="features\legitbot.h">
-      <Filter>include\features</Filter>
-    </ClInclude>
-    <ClInclude Include="features\ragebot.h">
-      <Filter>include\features</Filter>
-    </ClInclude>
-    <ClInclude Include="features\resolver.h">
-      <Filter>include\features</Filter>
-    </ClInclude>
-    <ClInclude Include="features\triggerbot.h">
+    <ClInclude Include="features\aimbot.h">
       <Filter>include\features</Filter>
     </ClInclude>
     <ClInclude Include="core\variables.h">
@@ -395,21 +392,33 @@
     <ClInclude Include="sdk\interfaces\iviewrender.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="utilities\micropather.h">
+      <Filter>include\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\nav\nav_area.h">
+      <Filter>include\sdk\nav</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\nav\nav_buffer.h">
+      <Filter>include\sdk\nav</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\nav\nav_file.h">
+      <Filter>include\sdk\nav</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\nav\nav_hiding_spot.h">
+      <Filter>include\sdk\nav</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\nav\nav_structs.h">
+      <Filter>include\sdk\nav</Filter>
+    </ClInclude>
+    <ClInclude Include="features\walkbot.h">
+      <Filter>include\features</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="features\lagcompensation.cpp">
       <Filter>source\features</Filter>
     </ClCompile>
-    <ClCompile Include="features\legitbot.cpp">
-      <Filter>source\features</Filter>
-    </ClCompile>
-    <ClCompile Include="features\ragebot.cpp">
-      <Filter>source\features</Filter>
-    </ClCompile>
-    <ClCompile Include="features\resolver.cpp">
-      <Filter>source\features</Filter>
-    </ClCompile>
-    <ClCompile Include="features\triggerbot.cpp">
+    <ClCompile Include="features\aimbot.cpp">
       <Filter>source\features</Filter>
     </ClCompile>
     <ClCompile Include="core\hooks.cpp">
@@ -510,6 +519,27 @@
     </ClCompile>
     <ClCompile Include="..\dependencies\minhook\hde\hde64.c">
       <Filter>dependencies\minhook\hde32</Filter>
+    </ClCompile>
+    <ClCompile Include="utilities\micropather.cpp">
+      <Filter>source\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="sdk\nav\nav_area.cpp">
+      <Filter>source\sdk\nav</Filter>
+    </ClCompile>
+    <ClCompile Include="sdk\nav\nav_buffer.cpp">
+      <Filter>source\sdk\nav</Filter>
+    </ClCompile>
+    <ClCompile Include="sdk\nav\nav_file.cpp">
+      <Filter>source\sdk\nav</Filter>
+    </ClCompile>
+    <ClCompile Include="sdk\nav\nav_hiding_spot.cpp">
+      <Filter>source\sdk\nav</Filter>
+    </ClCompile>
+    <ClCompile Include="features\walkbot.cpp">
+      <Filter>source\features</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\imgui\imgui_tables.cpp">
+      <Filter>dependencies\imgui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

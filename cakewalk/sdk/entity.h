@@ -772,6 +772,20 @@ public:
 		MEM::CallVFunc<void>(this, 75, nModelIndex);
 	}
 
+	bool HasScope()
+	{
+		short nDefinitionIndex = GetItemDefinitionIndex();
+		CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
+
+		if (pWeaponData == nullptr || !pWeaponData->IsGun())
+			return false;
+
+		if (nDefinitionIndex == WEAPON_AUG || nDefinitionIndex == WEAPON_SG556 || pWeaponData->nWeaponType == WEAPONTYPE_SNIPER)
+			return true;
+
+		return false;
+	}
+
 	bool IsWeapon()
 	{
 		return MEM::CallVFunc<bool>(this, 165);

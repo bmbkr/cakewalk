@@ -134,6 +134,16 @@ QAngle M::CalcAngle(const Vector& vecStart, const Vector& vecEnd)
 	return angView;
 }
 
+float M::GetFOV(const QAngle& viewAngle, const QAngle& aimAngle)
+{
+	Vector ang, aim;
+
+	AngleVectors(viewAngle, &aim);
+	AngleVectors(aimAngle, &ang);
+
+	return M_RAD2DEG(acos(aim.DotProduct(ang) / aim.LengthSqr()));
+}
+
 Vector M::VectorTransform(const Vector& vecTransform, const matrix3x4_t& matrix)
 {
 	return Vector(vecTransform.DotProduct(matrix[0]) + matrix[0][3],

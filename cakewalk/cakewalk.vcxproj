@@ -38,12 +38,10 @@
     <ClInclude Include="core\variables.h" />
     <ClInclude Include="features\autowall.h" />
     <ClInclude Include="features\lagcompensation.h" />
-    <ClInclude Include="features\legitbot.h" />
     <ClInclude Include="features\misc.h" />
     <ClInclude Include="features\prediction.h" />
-    <ClInclude Include="features\ragebot.h" />
-    <ClInclude Include="features\resolver.h" />
-    <ClInclude Include="features\triggerbot.h" />
+    <ClInclude Include="features\aimbot.h" />
+    <ClInclude Include="features\walkbot.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="sdk\animations.h" />
     <ClInclude Include="sdk\bitbuf.h" />
@@ -109,6 +107,11 @@
     <ClInclude Include="sdk\interfaces\ivpanel.h" />
     <ClInclude Include="sdk\interfaces\ivrenderview.h" />
     <ClInclude Include="sdk\interfaces\iweaponsystem.h" />
+    <ClInclude Include="sdk\nav\nav_area.h" />
+    <ClInclude Include="sdk\nav\nav_buffer.h" />
+    <ClInclude Include="sdk\nav\nav_file.h" />
+    <ClInclude Include="sdk\nav\nav_hiding_spot.h" />
+    <ClInclude Include="sdk\nav\nav_structs.h" />
     <ClInclude Include="sdk\studio.h" />
     <ClInclude Include="utilities.h" />
     <ClInclude Include="utilities\draw.h" />
@@ -119,6 +122,7 @@
     <ClInclude Include="utilities\math.h" />
     <ClInclude Include="utilities\memory.h" />
     <ClInclude Include="utilities\detourhook.h" />
+    <ClInclude Include="utilities\micropather.h" />
     <ClInclude Include="utilities\xorstr.h" />
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +131,7 @@
     <ClCompile Include="..\dependencies\imgui\imgui.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_freetype.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\dependencies\imgui\win32\imgui_impl_win32.cpp" />
     <ClCompile Include="..\dependencies\minhook\buffer.c" />
@@ -141,17 +146,19 @@
     <ClCompile Include="core\netvar.cpp" />
     <ClCompile Include="features\misc.cpp" />
     <ClCompile Include="features\prediction.cpp" />
+    <ClCompile Include="features\walkbot.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="features\autowall.cpp" />
     <ClCompile Include="features\lagcompensation.cpp" />
-    <ClCompile Include="features\legitbot.cpp" />
-    <ClCompile Include="features\ragebot.cpp" />
-    <ClCompile Include="features\resolver.cpp" />
-    <ClCompile Include="features\triggerbot.cpp" />
+    <ClCompile Include="features\aimbot.cpp" />
     <ClCompile Include="sdk\convar.cpp" />
     <ClCompile Include="sdk\entity.cpp" />
     <ClCompile Include="sdk\hash\crc32.cpp" />
     <ClCompile Include="sdk\hash\md5.cpp" />
+    <ClCompile Include="sdk\nav\nav_area.cpp" />
+    <ClCompile Include="sdk\nav\nav_buffer.cpp" />
+    <ClCompile Include="sdk\nav\nav_file.cpp" />
+    <ClCompile Include="sdk\nav\nav_hiding_spot.cpp" />
     <ClCompile Include="utilities.cpp" />
     <ClCompile Include="utilities\draw.cpp" />
     <ClCompile Include="utilities\entitylistener.cpp" />
@@ -160,6 +167,7 @@
     <ClCompile Include="utilities\logging.cpp" />
     <ClCompile Include="utilities\math.cpp" />
     <ClCompile Include="utilities\memory.cpp" />
+    <ClCompile Include="utilities\micropather.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -313,7 +321,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
-      <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>d3d9.lib;d3dx9.lib;freetype_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
