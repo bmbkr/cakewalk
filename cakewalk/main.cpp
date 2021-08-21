@@ -15,7 +15,7 @@
 #include "utilities/math.h"
 // used: inputsystem setup/destroy
 #include "utilities/inputsystem.h"
-// used: render setup/destroy
+// used: render setup/destroy///
 #include "utilities/draw.h"
 // used: netvar manager setup
 #include "core/netvar.h"
