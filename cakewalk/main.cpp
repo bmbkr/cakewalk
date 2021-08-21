@@ -100,7 +100,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		L::Print(XorStr("inputsystem setup complete"));
 
 		#if 0
-		// start tracking entities
+		// start trackingasdasd entities
 		U::EntityListener.Setup();
 		L::Print(XorStr("entity listener initialized"));
 		#endif
