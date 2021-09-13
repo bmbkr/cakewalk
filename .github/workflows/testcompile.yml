@@ -1,0 +1,15 @@
+name: Test Project Compile
+on: [push]
+jobs:
+  Compile:
+    runs-on: windows-latest
+
+    env:
+      MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build
+      shell: cmd
+      run: '"%MSBUILD_PATH%\MSBuild.exe" cakewalk.sln /p:Platform=x86 /p:Configuration=Debug'
