@@ -10,6 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Build
+    - name: Build (if it fails from not having d3dx9.h, thats means it *should* work lol)
       shell: cmd
       run: '"%MSBUILD_PATH%\MSBuild.exe" cakewalk.sln /p:Platform=x86 /p:Configuration=Debug'
